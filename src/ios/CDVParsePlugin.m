@@ -16,6 +16,13 @@
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
+- (void)unregister: (CDVInvokedUrlCommand *)command
+{
+    [[UIApplication sharedApplication] unregisterForRemoteNotifications];
+    CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+
 - (void)getInstallationId:(CDVInvokedUrlCommand*) command
 {
     [self.commandDelegate runInBackground:^{
