@@ -48,6 +48,9 @@
 - (void)getSubscriptions: (CDVInvokedUrlCommand *)command
 {
     NSArray *channels = [PFInstallation currentInstallation].channels;
+    if (channels == nil) {
+        channels = [NSArray array];
+    }
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:channels];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
