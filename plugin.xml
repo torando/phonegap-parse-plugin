@@ -44,7 +44,6 @@
         <framework src="Security.framework" />
         <framework src="StoreKit.framework" />
         <framework src="SystemConfiguration.framework" />
-        <framework src="src/ios/Frameworks/Parse.framework" custom="true" />
     </platform>
           
 </plugin>
