@@ -3,7 +3,9 @@
 
 @interface CDVParsePlugin: CDVPlugin
 
-- (void)initialize: (CDVInvokedUrlCommand*)command;
+@property (nonatomic, copy) NSString *callback;
+
+- (void)register: (CDVInvokedUrlCommand*)command;
 - (void)unregister: (CDVInvokedUrlCommand*)command;
 - (void)clearBadge: (CDVInvokedUrlCommand*)command;
 - (void)getInstallationId: (CDVInvokedUrlCommand*)command;

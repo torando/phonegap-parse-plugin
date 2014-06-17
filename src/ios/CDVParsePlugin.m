@@ -6,13 +6,18 @@
 
 @implementation CDVParsePlugin
 
-- (void)initialize: (CDVInvokedUrlCommand*)command
+@synthesize callback;
+
+- (void)register:(CDVInvokedUrlCommand *)command
 {
-    CDVPluginResult* pluginResult = nil;
     NSString *appId = [command.arguments objectAtIndex:0];
     NSString *clientKey = [command.arguments objectAtIndex:1];
+    self.callback = [command.arguments objectAtIndex:2];
     [Parse setApplicationId:appId clientKey:clientKey];
-    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    [[UIApplication sharedApplication] registerForRemoteNotificationTypes:UIRemoteNotificationTypeBadge |
+                                                                          UIRemoteNotificationTypeAlert |
+                                                                          UIRemoteNotificationTypeSound];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
