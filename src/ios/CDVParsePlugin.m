@@ -21,7 +21,7 @@
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
-- (void)unregister: (CDVInvokedUrlCommand *)command
+- (void)unregister:(CDVInvokedUrlCommand *)command
 {
     [[UIApplication sharedApplication] unregisterForRemoteNotifications];
     CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
@@ -35,63 +35,62 @@
     [[UIApplication sharedApplication] cancelAllLocalNotifications];
 }
 
-- (void)getInstallationId:(CDVInvokedUrlCommand*) command
+- (void)getInstallationId:(CDVInvokedUrlCommand *)command
 {
     [self.commandDelegate runInBackground:^{
-        CDVPluginResult* pluginResult = nil;
         PFInstallation *currentInstallation = [PFInstallation currentInstallation];
         NSString *installationId = currentInstallation.installationId;
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:installationId];
+        CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
+                                                          messageAsString:installationId];
         [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
     }];
 }
 
-- (void)getInstallationObjectId:(CDVInvokedUrlCommand*) command
+- (void)getInstallationObjectId:(CDVInvokedUrlCommand *)command
 {
     [self.commandDelegate runInBackground:^{
-        CDVPluginResult* pluginResult = nil;
         PFInstallation *currentInstallation = [PFInstallation currentInstallation];
         NSString *objectId = currentInstallation.objectId;
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:objectId];
+        CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
+                                                          messageAsString:objectId];
         [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
     }];
 }
 
-- (void)getSubscriptions: (CDVInvokedUrlCommand *)command
+- (void)getSubscriptions:(CDVInvokedUrlCommand *)command
 {
     NSArray *channels = [PFInstallation currentInstallation].channels;
     if (channels == nil) {
         channels = [NSArray array];
     }
-    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:channels];
+    CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
+                                                       messageAsArray:channels];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
-- (void)subscribe: (CDVInvokedUrlCommand *)command
+- (void)subscribe:(CDVInvokedUrlCommand *)command
 {
-    CDVPluginResult* pluginResult = nil;
     PFInstallation *currentInstallation = [PFInstallation currentInstallation];
     NSString *channel = [command.arguments objectAtIndex:0];
     [currentInstallation addUniqueObject:channel forKey:@"channels"];
     [currentInstallation saveInBackground];
-    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
-- (void)unsubscribe: (CDVInvokedUrlCommand *)command
+- (void)unsubscribe:(CDVInvokedUrlCommand *)command
 {
-    CDVPluginResult* pluginResult = nil;
     PFInstallation *currentInstallation = [PFInstallation currentInstallation];
     NSString *channel = [command.arguments objectAtIndex:0];
     [currentInstallation removeObject:channel forKey:@"channels"];
     [currentInstallation saveInBackground];
-    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
 @end
 
-@implementation AppDelegate (CDVParsePlugin)
+@implementation AppDelegate(CDVParsePlugin)
 
 void MethodSwizzle(Class c, SEL originalSelector) {
     NSString *selectorString = NSStringFromSelector(originalSelector);
