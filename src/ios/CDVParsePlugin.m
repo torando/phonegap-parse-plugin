@@ -116,6 +116,7 @@ void MethodSwizzle(Class c, SEL originalSelector) {
 
 - (AppDelegate *)noop_init
 {
+    return [super init];
 }
 
 - (AppDelegate *)swizzled_init
@@ -140,7 +141,7 @@ void MethodSwizzle(Class c, SEL originalSelector) {
 
     NSDictionary *data = [launchOptions objectForKey:@"UIApplicationLaunchOptionsRemoteNotificationKey"];
     NSError *error = nil;
-    NSData *json = [NSJSONSerialization dataWithJSONObject:dict
+    NSData *json = [NSJSONSerialization dataWithJSONObject:data
                                                    options:NSJSONWritingPrettyPrinted
                                                      error:&error];
     if (error != nil) {
@@ -154,9 +155,7 @@ void MethodSwizzle(Class c, SEL originalSelector) {
                                                      encoding:NSUTF8StringEncoding];
     NSString *jsCB = [NSString stringWithFormat:@"%@(%@);", parsePlugin.callback, serializedJSON];
     NSLog(@"notification callback: %@", jsCB);
-    [self.webView stringByEvaluatingJavaScriptFromString:jsCB];
-
-    [serializedJSON release];
+    [self.viewController.webView stringByEvaluatingJavaScriptFromString:jsCB];
 }
 
 - (void)noop_application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)newDeviceToken
