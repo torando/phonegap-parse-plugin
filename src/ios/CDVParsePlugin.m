@@ -128,6 +128,26 @@ void MethodSwizzle(Class c, SEL originalSelector) {
     return [self swizzled_init];
 }
 
+- (void)handleNotification:(NSDictionary *)userInfo
+{
+    NSError *error = nil;
+    NSData *json = [NSJSONSerialization dataWithJSONObject:userInfo
+                                                   options:NSJSONWritingPrettyPrinted
+                                                     error:&error];
+    if (error != nil) {
+        NSLog(@"notification serialization error: %@", error);
+        return;
+    }
+
+    CDVParsePlugin *parsePlugin = [self.viewController getCommandInstance:@"ParsePlugin"];
+
+    NSString *serializedJSON = [[NSString alloc] initWithData:json
+                                                     encoding:NSUTF8StringEncoding];
+    NSString *jsCB = [NSString stringWithFormat:@"%@(%@);", parsePlugin.callback, serializedJSON];
+    NSLog(@"notification callback: %@", jsCB);
+    [self.viewController.webView stringByEvaluatingJavaScriptFromString:jsCB];
+}
+
 - (void)launchNotification:(NSNotification *)notification
 {
     if (notification == nil) {
@@ -139,23 +159,7 @@ void MethodSwizzle(Class c, SEL originalSelector) {
         return;
     }
 
-    NSDictionary *data = [launchOptions objectForKey:@"UIApplicationLaunchOptionsRemoteNotificationKey"];
-    NSError *error = nil;
-    NSData *json = [NSJSONSerialization dataWithJSONObject:data
-                                                   options:NSJSONWritingPrettyPrinted
-                                                     error:&error];
-    if (error != nil) {
-        NSLog(@"notification serialization error: %@", error);
-        return;
-    }
-
-    CDVParsePlugin *parsePlugin = [self.viewController getCommandInstance:@"CDVParsePlugin"];
-
-    NSString *serializedJSON = [[NSString alloc] initWithData:json
-                                                     encoding:NSUTF8StringEncoding];
-    NSString *jsCB = [NSString stringWithFormat:@"%@(%@);", parsePlugin.callback, serializedJSON];
-    NSLog(@"notification callback: %@", jsCB);
-    [self.viewController.webView stringByEvaluatingJavaScriptFromString:jsCB];
+    [self handleNotification:[launchOptions objectForKey:@"UIApplicationLaunchOptionsRemoteNotificationKey"]];
 }
 
 - (void)noop_application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)newDeviceToken
@@ -180,6 +184,7 @@ void MethodSwizzle(Class c, SEL originalSelector) {
 {
     // Call existing method
     [self swizzled_application:application didReceiveRemoteNotification:userInfo];
+    [self handleNotification:userInfo];
 }
 
 @end
