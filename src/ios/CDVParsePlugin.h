@@ -5,6 +5,7 @@
 
 - (void)initialize: (CDVInvokedUrlCommand*)command;
 - (void)unregister: (CDVInvokedUrlCommand*)command;
+- (void)clearBadge: (CDVInvokedUrlCommand*)command;
 - (void)getInstallationId: (CDVInvokedUrlCommand*)command;
 - (void)getInstallationObjectId: (CDVInvokedUrlCommand*)command;
 - (void)getSubscriptions: (CDVInvokedUrlCommand *)command;

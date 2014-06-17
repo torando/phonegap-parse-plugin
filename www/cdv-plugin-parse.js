@@ -19,6 +19,16 @@ var parsePlugin = {
         );
     },
 
+    clearBadge: function(successCallback, errorCallback) {
+        cordova.exec(
+            successCallback,
+            errorCallback,
+            'ParsePlugin',
+            'clearBadge',
+            []
+        );
+    },
+
     getInstallationId: function(successCallback, errorCallback) {
         cordova.exec(
             successCallback,

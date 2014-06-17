@@ -23,6 +23,13 @@
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
+- (void)clearBadge:(CDVInvokedUrlCommand *)command
+{
+    [[UIApplication sharedApplication] setApplicationIconBadgeNumber:1];
+    [[UIApplication sharedApplication] setApplicationIconBadgeNumber:0];
+    [[UIApplication sharedApplication] cancelAllLocalNotifications];
+}
+
 - (void)getInstallationId:(CDVInvokedUrlCommand*) command
 {
     [self.commandDelegate runInBackground:^{
