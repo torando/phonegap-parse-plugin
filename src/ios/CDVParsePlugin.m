@@ -109,8 +109,54 @@ void MethodSwizzle(Class c, SEL originalSelector) {
 
 + (void)load
 {
+    MethodSwizzle([self class], @selector(init));
     MethodSwizzle([self class], @selector(application:didRegisterForRemoteNotificationsWithDeviceToken:));
     MethodSwizzle([self class], @selector(application:didReceiveRemoteNotification:));
+}
+
+- (AppDelegate *)noop_init
+{
+}
+
+- (AppDelegate *)swizzled_init
+{
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(launchNotification:)
+                                                 name:@"UIApplicationDidFinishLaunchingNotification"
+                                               object:nil];
+    return [self swizzled_init];
+}
+
+- (void)launchNotification:(NSNotification *)notification
+{
+    if (notification == nil) {
+        return;
+    }
+
+    NSDictionary *launchOptions = [notification userInfo];
+    if (launchOptions == nil) {
+        return;
+    }
+
+    NSDictionary *data = [launchOptions objectForKey:@"UIApplicationLaunchOptionsRemoteNotificationKey"];
+    NSError *error = nil;
+    NSData *json = [NSJSONSerialization dataWithJSONObject:dict
+                                                   options:NSJSONWritingPrettyPrinted
+                                                     error:&error];
+    if (error != nil) {
+        NSLog(@"notification serialization error: %@", error);
+        return;
+    }
+
+    CDVParsePlugin *parsePlugin = [self.viewController getCommandInstance:@"CDVParsePlugin"];
+
+    NSString *serializedJSON = [[NSString alloc] initWithData:json
+                                                     encoding:NSUTF8StringEncoding];
+    NSString *jsCB = [NSString stringWithFormat:@"%@(%@);", parsePlugin.callback, serializedJSON];
+    NSLog(@"notification callback: %@", jsCB);
+    [self.webView stringByEvaluatingJavaScriptFromString:jsCB];
+
+    [serializedJSON release];
 }
 
 - (void)noop_application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)newDeviceToken
