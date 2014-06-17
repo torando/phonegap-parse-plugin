@@ -4,7 +4,7 @@ var parsePlugin = {
             successCallback,
             errorCallback,
             'ParsePlugin',
-            'initialize',
+            'register',
             [appId, clientKey, cb]
         );
     },
