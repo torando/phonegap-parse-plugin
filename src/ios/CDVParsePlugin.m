@@ -7,12 +7,46 @@
 @implementation CDVParsePlugin
 
 @synthesize callback;
+@synthesize launchNotification;
+
+- (void)handleNotification:(NSDictionary *)userInfo atLaunch:(BOOL)atLaunch
+{
+    NSError *error = nil;
+
+    if (self.callback == nil) {
+        self.launchNotification = userInfo;
+        return;
+    }
+
+    NSMutableDictionary *data = [[NSMutableDictionary alloc] init];
+    [data addEntriesFromDictionary:userInfo];
+    [data setObject:[NSNumber numberWithBool:atLaunch] forKey:@"at_launch"];
+    NSData *json = [NSJSONSerialization dataWithJSONObject:data
+                                                   options:NSJSONWritingPrettyPrinted
+                                                     error:&error];
+    if (error != nil) {
+        NSLog(@"notification serialization error: %@", error);
+        return;
+    }
+
+    NSString *serializedJSON = [[NSString alloc] initWithData:json
+                                                     encoding:NSUTF8StringEncoding];
+    NSString *jsCB = [NSString stringWithFormat:@"%@(%@);", self.callback, serializedJSON];
+    NSLog(@"notification callback: %@", jsCB);
+
+    AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
+    [appDelegate.viewController.webView stringByEvaluatingJavaScriptFromString:jsCB];
+}
 
 - (void)register:(CDVInvokedUrlCommand *)command
 {
     NSString *appId = [command.arguments objectAtIndex:0];
     NSString *clientKey = [command.arguments objectAtIndex:1];
     self.callback = [command.arguments objectAtIndex:2];
+    if (self.launchNotification != nil) {
+        [self handleNotification:self.launchNotification atLaunch:YES];
+        self.launchNotification = nil;
+    }
     [Parse setApplicationId:appId clientKey:clientKey];
     CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     [[UIApplication sharedApplication] registerForRemoteNotificationTypes:UIRemoteNotificationTypeBadge |
@@ -128,26 +162,6 @@ void MethodSwizzle(Class c, SEL originalSelector) {
     return [self swizzled_init];
 }
 
-- (void)handleNotification:(NSDictionary *)userInfo
-{
-    NSError *error = nil;
-    NSData *json = [NSJSONSerialization dataWithJSONObject:userInfo
-                                                   options:NSJSONWritingPrettyPrinted
-                                                     error:&error];
-    if (error != nil) {
-        NSLog(@"notification serialization error: %@", error);
-        return;
-    }
-
-    CDVParsePlugin *parsePlugin = [self.viewController getCommandInstance:@"ParsePlugin"];
-
-    NSString *serializedJSON = [[NSString alloc] initWithData:json
-                                                     encoding:NSUTF8StringEncoding];
-    NSString *jsCB = [NSString stringWithFormat:@"%@(%@);", parsePlugin.callback, serializedJSON];
-    NSLog(@"notification callback: %@", jsCB);
-    [self.viewController.webView stringByEvaluatingJavaScriptFromString:jsCB];
-}
-
 - (void)launchNotification:(NSNotification *)notification
 {
     if (notification == nil) {
@@ -159,7 +173,9 @@ void MethodSwizzle(Class c, SEL originalSelector) {
         return;
     }
 
-    [self handleNotification:[launchOptions objectForKey:@"UIApplicationLaunchOptionsRemoteNotificationKey"]];
+    CDVParsePlugin *parsePlugin = [self.viewController getCommandInstance:@"ParsePlugin"];
+    [parsePlugin handleNotification:[launchOptions objectForKey:@"UIApplicationLaunchOptionsRemoteNotificationKey"]
+                           atLaunch:YES];
 }
 
 - (void)noop_application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)newDeviceToken
@@ -184,7 +200,8 @@ void MethodSwizzle(Class c, SEL originalSelector) {
 {
     // Call existing method
     [self swizzled_application:application didReceiveRemoteNotification:userInfo];
-    [self handleNotification:userInfo];
+    CDVParsePlugin *parsePlugin = [self.viewController getCommandInstance:@"ParsePlugin"];
+    [parsePlugin handleNotification:userInfo atLaunch:NO];
 }
 
 @end
